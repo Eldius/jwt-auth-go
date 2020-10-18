@@ -16,14 +16,16 @@ func SetDefaults() {
 	viper.SetDefault("auth.database.engine", "sqlite3")
 	viper.SetDefault("auth.user.pattern", "^[a-zA-Z0-9\\._-]*$")
 	viper.SetDefault("auth.jwt.secret", uuid.New().String())
+	viper.SetDefault("auth.user.default.active", true)
 }
 
 func BindEnvVars() {
-	bindEnv("auth.database.url", "APP_DATABASE_URL")
-	bindEnv("auth.database.engine", "APP_DATABASE_ENGINE")
-	bindEnv("auth.database.log", "APP_DATABASE_LOG")
-	bindEnv("auth.pass.pattern", "APP_AUTH_PASS_PATTERN")
-	bindEnv("auth.jwt.secret", "APP_AUTH_JWT_SECRET")
+	bindEnv("auth.database.url", "AUTH_DATABASE_URL")
+	bindEnv("auth.database.engine", "AUTH_DATABASE_ENGINE")
+	bindEnv("auth.database.log", "AUTH_DATABASE_LOG")
+	bindEnv("auth.pass.pattern", "AUTH_PASS_PATTERN")
+	bindEnv("auth.jwt.secret", "AUTH_JWT_SECRET")
+	bindEnv("auth.jwt.secret", "AUTH_USER_DEFAULT_ACTIVE")
 }
 
 func SetupViper(cfgFile string) {

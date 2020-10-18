@@ -31,3 +31,7 @@ GetJWTSecret returns the JWT secret to be used
 func GetJWTSecret() string {
 	return viper.GetString("auth.jwt.secret")
 }
+
+func GetUserDefaultActive() bool {
+	return viper.GetBool("auth.user.default.active")
+}

@@ -89,16 +89,12 @@ func HandleNewUser() http.HandlerFunc {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			return
 		}
-		if u.User == "" || u.Pass == "" {
-			log.Println(err.Error())
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			return
-		}
 
 		c, err := toCredentials(&u)
 		if err != nil {
 			log.Println(err.Error())
 			w.WriteHeader(http.StatusUnprocessableEntity)
+			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
 		repository.SaveUser(c)

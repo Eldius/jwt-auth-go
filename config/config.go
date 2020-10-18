@@ -26,6 +26,14 @@ func GetUsernamePattern() string {
 }
 
 /*
+GetPasswordPattern returns the pattern to
+validate password
+*/
+func GetPasswordPattern() string {
+	return viper.GetString("auth.pass.pattern")
+}
+
+/*
 GetJWTSecret returns the JWT secret to be used
 */
 func GetJWTSecret() string {

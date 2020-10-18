@@ -13,6 +13,8 @@ import (
 const (
 	emptyUsername   = "credentials.username.must.not.be.empty"
 	invalidUsername = "credentials.username.must.match.pattern"
+	emptyPassword   = "credentials.password.must.not.be.empty"
+	invalidPassword = "credentials.password.must.match.pattern"
 )
 
 /*
@@ -46,6 +48,9 @@ func NewCredentials(user string, pass string) (cred CredentialInfo, err error) {
 	if err = validateUsername(user); err != nil {
 		return
 	}
+	if err = validatePassword(pass); err != nil {
+		return
+	}
 
 	h := sha512.New()
 	_, err = h.Write([]byte(pass))
@@ -76,6 +81,19 @@ func validateUsername(username string) error {
 	r := regexp.MustCompile(config.GetUsernamePattern())
 	if !r.MatchString(username) {
 		return errors.New(invalidUsername)
+	}
+	return nil
+}
+
+
+func validatePassword(pass string) error {
+	if pass == "" {
+		return errors.New(emptyPassword)
+	}
+
+	r := regexp.MustCompile(config.GetPasswordPattern())
+	if !r.MatchString(pass) {
+		return errors.New(invalidPassword)
 	}
 	return nil
 }

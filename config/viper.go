@@ -18,6 +18,7 @@ func SetDefaults() {
 	viper.SetDefault("auth.pass.pattern", "^[a-zA-Z0-9\\._-]*$")
 	viper.SetDefault("auth.jwt.secret", uuid.New().String())
 	viper.SetDefault("auth.user.default.active", true)
+	viper.SetDefault("auth.jwt.ttl", "0s")
 }
 
 func BindEnvVars() {
@@ -28,6 +29,7 @@ func BindEnvVars() {
 	bindEnv("auth.pass.pattern", "AUTH_PASS_PATTERN")
 	bindEnv("auth.jwt.secret", "AUTH_JWT_SECRET")
 	bindEnv("auth.user.default.active", "AUTH_USER_DEFAULT_ACTIVE")
+	bindEnv("auth.jwt.ttl", "AUTH_JWT_TTL")
 }
 
 func SetupViper(cfgFile string) {

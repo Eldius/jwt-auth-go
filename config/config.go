@@ -1,6 +1,10 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"time"
+
+	"github.com/spf13/viper"
+)
 
 // GetDBURL returns the database url
 func GetDBURL() string {
@@ -40,6 +44,18 @@ func GetJWTSecret() string {
 	return viper.GetString("auth.jwt.secret")
 }
 
+/*
+GetUserDefaultActive returns configuration about
+new users will be created active or inactive
+*/
 func GetUserDefaultActive() bool {
 	return viper.GetBool("auth.user.default.active")
+}
+
+/*
+DefaultJwtTTL returns the JWT TTL (the time
+util JWT will expire)
+*/
+func DefaultJwtTTL() time.Duration {
+	return viper.GetDuration("auth.jwt.ttl")
 }

@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Eldius/jwt-auth-go/config"
 	"github.com/Eldius/jwt-auth-go/hashtools"
@@ -143,6 +144,10 @@ func generatePayload(u user.CredentialInfo) (payloadStr string, err error) {
 	payload := map[string]string{
 		"user": u.User,
 		"name": u.Name,
+	}
+	ttl := config.GetDefaultJwtTTL()
+	if ttl.Milliseconds() >= 0 {
+		payload["expires"] = time.Now().Add(ttl).String()
 	}
 	payloadByte, err := json.Marshal(payload)
 	if err != nil {

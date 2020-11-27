@@ -53,9 +53,9 @@ func GetUserDefaultActive() bool {
 }
 
 /*
-DefaultJwtTTL returns the JWT TTL (the time
+GetDefaultJwtTTL returns the JWT TTL (the time
 util JWT will expire)
 */
-func DefaultJwtTTL() time.Duration {
+func GetDefaultJwtTTL() time.Duration {
 	return viper.GetDuration("auth.jwt.ttl")
 }

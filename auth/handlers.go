@@ -117,6 +117,10 @@ func (h *AuthHandler) HandleNewUser() http.HandlerFunc {
 	}
 }
 
+func (h *AuthHandler) AuthInterceptor(f http.HandlerFunc) http.Handler {
+	return h.svc.AuthInterceptor(f)
+}
+
 func toCredentials(u *NewUserRequest) (*user.CredentialInfo, error) {
 	c, err := user.NewCredentials(u.User, u.Pass)
 	if err != nil {

@@ -53,7 +53,7 @@ func init() {
 	if err != nil {
 		panic(err.Error())
 	}
-	viper.SetDefault("auth.database.url", tmp + "/test.db")
+	viper.SetDefault("auth.database.url", tmp+"/test.db")
 	viper.SetDefault("auth.database.engine", "sqlite3")
 	viper.SetDefault("auth.user.pattern", "^[a-zA-Z0-9\\._-]*$")
 	viper.SetDefault("auth.pass.pattern", "^[a-zA-Z0-9\\._-]*$")
@@ -65,7 +65,8 @@ func init() {
 }
 
 func TestAuthRequestCreated(t *testing.T) {
-	s := httptest.NewServer(HandleNewUser())
+	h := NewHandler()
+	s := httptest.NewServer(h.HandleNewUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(validUserPayload)))
 	if err != nil {
@@ -78,7 +79,8 @@ func TestAuthRequestCreated(t *testing.T) {
 }
 
 func TestAuthUnprocessableNoUsername(t *testing.T) {
-	s := httptest.NewServer(HandleNewUser())
+	h := NewHandler()
+	s := httptest.NewServer(h.HandleNewUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(userlessUserPayload)))
 	if err != nil {
@@ -91,7 +93,8 @@ func TestAuthUnprocessableNoUsername(t *testing.T) {
 }
 
 func TestAuthUnprocessableNoPassword(t *testing.T) {
-	s := httptest.NewServer(HandleNewUser())
+	h := NewHandler()
+	s := httptest.NewServer(h.HandleNewUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(passlessUserPayload)))
 	if err != nil {
@@ -104,7 +107,8 @@ func TestAuthUnprocessableNoPassword(t *testing.T) {
 }
 
 func TestAuthUnprocessableInvalidActiveAttribute(t *testing.T) {
-	s := httptest.NewServer(HandleNewUser())
+	h := NewHandler()
+	s := httptest.NewServer(h.HandleNewUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(invalidActiveUserPayload)))
 	if err != nil {

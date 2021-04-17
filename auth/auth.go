@@ -24,9 +24,25 @@ const (
 	invalidJwtSign   = "auth.jwt.validation.sign.invalid"
 )
 
+type AuthService struct {
+	repo *repository.AuthRepository
+}
+
+func NewAuthService() *AuthService {
+	return &AuthService{
+		repo: repository.NewRepository(),
+	}
+}
+
+func NewAuthServiceCustom(repo *repository.AuthRepository) *AuthService {
+	return &AuthService{
+		repo: repo,
+	}
+}
+
 // ValidatePass validates user credentials
-func ValidatePass(username string, pass string) (u *user.CredentialInfo, err error) {
-	var usr = repository.FindUser(username)
+func (s *AuthService) ValidatePass(username string, pass string) (u *user.CredentialInfo, err error) {
+	var usr = s.repo.FindUser(username)
 	if usr.Hash == nil {
 		err = fmt.Errorf("Failed to authenticate user")
 		return
@@ -47,7 +63,7 @@ func ValidatePass(username string, pass string) (u *user.CredentialInfo, err err
 	return
 }
 
-func ToJWT(u user.CredentialInfo) (jwt string, err error) {
+func (s *AuthService) ToJWT(u user.CredentialInfo) (jwt string, err error) {
 	// Create a new HMAC by defining the hash type and the key (as byte array)
 	header, err := generateHeader(u)
 	if err != nil {
@@ -68,7 +84,7 @@ func ToJWT(u user.CredentialInfo) (jwt string, err error) {
 	return
 }
 
-func FromJWT(jwt string) (u *user.CredentialInfo, err error) {
+func (s *AuthService) FromJWT(jwt string) (u *user.CredentialInfo, err error) {
 	parts := strings.Split(jwt, ".")
 	if len(parts) != 3 {
 		err = fmt.Errorf(invalidJwtFormat)
@@ -94,18 +110,18 @@ func FromJWT(jwt string) (u *user.CredentialInfo, err error) {
 		return
 	}
 
-	u = repository.FindUser(tmpData["user"])
+	u = s.repo.FindUser(tmpData["user"])
 
 	return
 }
 
-func AuthInterceptor(f http.HandlerFunc) http.Handler {
+func (s *AuthService) AuthInterceptor(f http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		// TODO remove this before release
 		if strings.HasPrefix(authHeader, "Bearer ") {
 			jwt := strings.Replace(authHeader, "Bearer ", "", 1)
-			u, err := FromJWT(jwt)
+			u, err := s.FromJWT(jwt)
 			if err != nil {
 				log.Println(err.Error())
 				w.WriteHeader(403)
@@ -121,7 +137,7 @@ func AuthInterceptor(f http.HandlerFunc) http.Handler {
 	})
 }
 
-func GetCurrentUser(r *http.Request) *user.CredentialInfo {
+func (s *AuthService) GetCurrentUser(r *http.Request) *user.CredentialInfo {
 	ctx := r.Context()
 	return ctx.Value(CurrentUserKey).(*user.CredentialInfo)
 }

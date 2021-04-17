@@ -26,8 +26,8 @@ func init() {
 		log.Println("Failed to setup temp database")
 		log.Fatal(err.Error())
 	}
-	os.RemoveAll("/tmp/auth-server-test")
-	if err := os.MkdirAll("/tmp/auth-server-test", os.ModePerm); err != nil {
+	os.RemoveAll(tmpDir)
+	if err := os.MkdirAll(tmpDir, os.ModePerm); err != nil {
 		log.Panic("Failed to create temp dir for tests.")
 	}
 	viper.SetDefault("auth.database.url", fmt.Sprintf("%s/test.db", tmpDir))
@@ -48,9 +48,12 @@ func TestValidatePass(t *testing.T) {
 		t.Errorf("Failed to prepare test user:\n%s", err.Error())
 	}
 
-	repository.SaveUser(&u)
+	r := repository.NewRepository()
+	svc := NewAuthServiceCustom(r)
 
-	c, err := ValidatePass(username, passwd)
+	r.SaveUser(&u)
+
+	c, err := svc.ValidatePass(username, passwd)
 	if err != nil {
 		t.Error(err)
 	}
@@ -69,9 +72,12 @@ func TestValidatePassInvalidCredentials(t *testing.T) {
 		t.Errorf("Failed to prepare test user:\n%s", err.Error())
 	}
 
-	repository.SaveUser(&u)
+	r := repository.NewRepository()
+	svc := NewAuthServiceCustom(r)
 
-	c, err := ValidatePass(username, "pass")
+	r.SaveUser(&u)
+
+	c, err := svc.ValidatePass(username, "pass")
 	if err == nil {
 		t.Error("Should return an error in login process")
 	}
@@ -86,7 +92,9 @@ func TestValidatePassUserNotFound(t *testing.T) {
 	username := "user2"
 	passwd := "pass1"
 
-	c, err := ValidatePass(username, passwd)
+	svc := NewAuthService()
+
+	c, err := svc.ValidatePass(username, passwd)
 	if err == nil {
 		t.Error("Should return an error")
 	}
@@ -102,7 +110,9 @@ func TestToJWT(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to create the test user\n%s", err.Error())
 	}
-	token, err := ToJWT(u)
+	svc := NewAuthService()
+
+	token, err := svc.ToJWT(u)
 	if err != nil {
 		t.Errorf("Failed to create token\n%s", err.Error())
 	}

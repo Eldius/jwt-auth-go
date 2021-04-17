@@ -6,7 +6,6 @@ import (
 	"net/http"
 
 	"github.com/Eldius/jwt-auth-go/config"
-	"github.com/Eldius/jwt-auth-go/repository"
 	"github.com/Eldius/jwt-auth-go/user"
 )
 
@@ -19,20 +18,36 @@ type NewUserRequest struct {
 	User   string `json:"user"`
 	Pass   string `json:"pass"`
 	Name   string `json:"name"`
-	Active bool `json:"active"`
-	Admin  bool `json:"admin"`
+	Active bool   `json:"active"`
+	Admin  bool   `json:"admin"`
 }
 
 type AuthContextKey string
+
+type AuthHandler struct {
+	svc *AuthService
+}
 
 const (
 	CurrentUserKey AuthContextKey = "currentUser"
 )
 
+func NewHandler() *AuthHandler {
+	return &AuthHandler{
+		svc: NewAuthService(),
+	}
+}
+
+func NewHandlerCustom(svc *AuthService) *AuthHandler {
+	return &AuthHandler{
+		svc: svc,
+	}
+}
+
 /*
 HandleLogin handles login requests
 */
-func HandleLogin() http.HandlerFunc {
+func (h *AuthHandler) HandleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//w.Header().Add("Content-Type", "application/json")
 		w.Header().Add("Content-Type", "application/json")
@@ -48,7 +63,7 @@ func HandleLogin() http.HandlerFunc {
 			w.WriteHeader(401)
 			return
 		}
-		cred, err := ValidatePass(u.User, u.Pass)
+		cred, err := h.svc.ValidatePass(u.User, u.Pass)
 		if err != nil {
 			log.Println(err.Error())
 			w.WriteHeader(401)
@@ -61,7 +76,7 @@ func HandleLogin() http.HandlerFunc {
 			return
 		}
 
-		token, err := ToJWT(*cred)
+		token, err := h.svc.ToJWT(*cred)
 		if err != nil {
 			log.Println(err.Error())
 			w.WriteHeader(500)
@@ -76,7 +91,7 @@ func HandleLogin() http.HandlerFunc {
 /*
 HandleNewUser handles new user creation
 */
-func HandleNewUser() http.HandlerFunc {
+func (h *AuthHandler) HandleNewUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -97,18 +112,18 @@ func HandleNewUser() http.HandlerFunc {
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		repository.SaveUser(c)
+		h.svc.repo.SaveUser(c)
 		w.WriteHeader(http.StatusCreated)
 	}
 }
 
 func toCredentials(u *NewUserRequest) (*user.CredentialInfo, error) {
-		c, err := user.NewCredentials(u.User, u.Pass)
-		if err != nil {
-			return nil, err
-		}
-		c.Name = u.Name
-		c.Admin = u.Admin
-		c.Active = config.GetUserDefaultActive()
-		return &c, nil
+	c, err := user.NewCredentials(u.User, u.Pass)
+	if err != nil {
+		return nil, err
+	}
+	c.Name = u.Name
+	c.Admin = u.Admin
+	c.Active = config.GetUserDefaultActive()
+	return &c, nil
 }

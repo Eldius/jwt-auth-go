@@ -6,8 +6,8 @@ import (
 	"log"
 	"regexp"
 
-	"github.com/Eldius/jwt-auth-go/config"
-	"github.com/Eldius/jwt-auth-go/hashtools"
+	"github.com/eldius/jwt-auth-go/config"
+	"github.com/eldius/jwt-auth-go/hashtools"
 )
 
 const (
@@ -84,7 +84,6 @@ func validateUsername(username string) error {
 	}
 	return nil
 }
-
 
 func validatePassword(pass string) error {
 	if pass == "" {

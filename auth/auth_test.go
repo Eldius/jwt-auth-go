@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Eldius/jwt-auth-go/config"
-	"github.com/Eldius/jwt-auth-go/repository"
-	"github.com/Eldius/jwt-auth-go/user"
+	"github.com/eldius/jwt-auth-go/config"
+	"github.com/eldius/jwt-auth-go/repository"
+	"github.com/eldius/jwt-auth-go/user"
 	"github.com/spf13/viper"
 )
 

@@ -1,4 +1,4 @@
-module github.com/Eldius/jwt-auth-go
+module github.com/eldius/jwt-auth-go
 
 go 1.14
 

@@ -1,9 +1,9 @@
 package repository
 
 import (
-	"github.com/Eldius/jwt-auth-go/config"
-	"github.com/Eldius/jwt-auth-go/logger"
-	"github.com/Eldius/jwt-auth-go/user"
+	"github.com/eldius/jwt-auth-go/config"
+	"github.com/eldius/jwt-auth-go/logger"
+	"github.com/eldius/jwt-auth-go/user"
 	"github.com/jinzhu/gorm"
 )
 

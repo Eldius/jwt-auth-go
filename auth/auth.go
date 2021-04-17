@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Eldius/jwt-auth-go/config"
-	"github.com/Eldius/jwt-auth-go/hashtools"
-	"github.com/Eldius/jwt-auth-go/repository"
-	"github.com/Eldius/jwt-auth-go/user"
+	"github.com/eldius/jwt-auth-go/config"
+	"github.com/eldius/jwt-auth-go/hashtools"
+	"github.com/eldius/jwt-auth-go/repository"
+	"github.com/eldius/jwt-auth-go/user"
 )
 
 const (

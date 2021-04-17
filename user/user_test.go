@@ -3,7 +3,7 @@ package user
 import (
 	"testing"
 
-	"github.com/Eldius/jwt-auth-go/config"
+	"github.com/eldius/jwt-auth-go/config"
 )
 
 func init() {

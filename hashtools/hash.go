@@ -5,7 +5,7 @@ import (
 	"crypto/sha512"
 	"io"
 
-	"github.com/Eldius/jwt-auth-go/logger"
+	"github.com/eldius/jwt-auth-go/logger"
 	"golang.org/x/crypto/scrypt"
 )
 

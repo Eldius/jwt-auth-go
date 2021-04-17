@@ -59,3 +59,10 @@ util JWT will expire)
 func GetDefaultJwtTTL() time.Duration {
 	return viper.GetDuration("auth.jwt.ttl")
 }
+
+/*
+GetLoggerFormat returns the type of log
+*/
+func GetLoggerFormat() string {
+	return viper.GetString("app.log.format")
+}

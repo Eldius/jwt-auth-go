@@ -3,7 +3,7 @@ package logger
 import (
 	"os"
 
-	"github.com/Eldius/message-server-go/config"
+	"github.com/eldius/jwt-auth-go/config"
 	"github.com/sirupsen/logrus"
 )
 

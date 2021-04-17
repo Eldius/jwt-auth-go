@@ -3,7 +3,6 @@ module github.com/eldius/jwt-auth-go
 go 1.14
 
 require (
-	github.com/Eldius/message-server-go v0.0.0-20201023223058-2141282f2381
 	github.com/google/uuid v1.1.2
 	github.com/jinzhu/gorm v1.9.16
 	github.com/mitchellh/go-homedir v1.1.0

@@ -65,7 +65,7 @@ func (s *AuthService) ValidatePass(username string, pass string) (u *user.Creden
 
 func (s *AuthService) ToJWT(u user.CredentialInfo) (jwt string, err error) {
 	// Create a new HMAC by defining the hash type and the key (as byte array)
-	header, err := generateHeader(u)
+	header, err := generateHeader()
 	if err != nil {
 		return
 	}
@@ -142,7 +142,11 @@ func (s *AuthService) GetCurrentUser(r *http.Request) *user.CredentialInfo {
 	return ctx.Value(CurrentUserKey).(*user.CredentialInfo)
 }
 
-func generateHeader(u user.CredentialInfo) (headerStr string, err error) {
+func (s *AuthService) GetRepository() *repository.AuthRepository {
+	return s.repo
+}
+
+func generateHeader() (headerStr string, err error) {
 	header := map[string]string{
 		"alg": "HS256",
 		"typ": "JWT",

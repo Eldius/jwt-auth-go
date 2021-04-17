@@ -65,7 +65,7 @@ func init() {
 }
 
 func TestAuthRequestCreated(t *testing.T) {
-	h := NewHandler()
+	h := NewAuthHandler()
 	s := httptest.NewServer(h.HandleNewUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(validUserPayload)))
@@ -79,7 +79,7 @@ func TestAuthRequestCreated(t *testing.T) {
 }
 
 func TestAuthUnprocessableNoUsername(t *testing.T) {
-	h := NewHandler()
+	h := NewAuthHandler()
 	s := httptest.NewServer(h.HandleNewUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(userlessUserPayload)))
@@ -93,7 +93,7 @@ func TestAuthUnprocessableNoUsername(t *testing.T) {
 }
 
 func TestAuthUnprocessableNoPassword(t *testing.T) {
-	h := NewHandler()
+	h := NewAuthHandler()
 	s := httptest.NewServer(h.HandleNewUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(passlessUserPayload)))
@@ -107,7 +107,7 @@ func TestAuthUnprocessableNoPassword(t *testing.T) {
 }
 
 func TestAuthUnprocessableInvalidActiveAttribute(t *testing.T) {
-	h := NewHandler()
+	h := NewAuthHandler()
 	s := httptest.NewServer(h.HandleNewUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(invalidActiveUserPayload)))

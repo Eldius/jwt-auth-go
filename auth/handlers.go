@@ -32,13 +32,13 @@ const (
 	CurrentUserKey AuthContextKey = "currentUser"
 )
 
-func NewHandler() *AuthHandler {
+func NewAuthHandler() *AuthHandler {
 	return &AuthHandler{
 		svc: NewAuthService(),
 	}
 }
 
-func NewHandlerCustom(svc *AuthService) *AuthHandler {
+func NewAuthHandlerCustom(svc *AuthService) *AuthHandler {
 	return &AuthHandler{
 		svc: svc,
 	}
@@ -115,6 +115,10 @@ func (h *AuthHandler) HandleNewUser() http.HandlerFunc {
 		h.svc.repo.SaveUser(c)
 		w.WriteHeader(http.StatusCreated)
 	}
+}
+
+func (h *AuthHandler) GetService() *AuthService {
+	return h.svc
 }
 
 func (h *AuthHandler) AuthInterceptor(f http.HandlerFunc) http.Handler {

@@ -1,11 +1,14 @@
 package repository
 
 import (
-	"log"
-
 	"github.com/Eldius/jwt-auth-go/config"
+	"github.com/Eldius/jwt-auth-go/logger"
 	"github.com/Eldius/jwt-auth-go/user"
 	"github.com/jinzhu/gorm"
+)
+
+var (
+	log = logger.Logger()
 )
 
 type AuthRepository struct {
@@ -52,7 +55,7 @@ func (r *AuthRepository) SaveUser(c *user.CredentialInfo) {
 		return nil
 	})
 	if err != nil {
-		log.Panicln("Failed to insert data\n", err.Error())
+		log.WithError(err).Error("Failed to insert data\n", err.Error())
 	}
 }
 

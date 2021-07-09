@@ -2,7 +2,6 @@ package config
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 
@@ -43,11 +42,5 @@ func SetupViper(cfgFile string) {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
-}
-
-func bindEnv(key string, envVar string) {
-	if err := viper.BindEnv(key, envVar); err != nil {
-		log.Panic(fmt.Sprintf("Failed to bind config key '%s' to environment variable '%s'", key, envVar))
 	}
 }

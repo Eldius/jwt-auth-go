@@ -26,7 +26,7 @@ func NewRepository() *AuthRepository {
 	if config.GetDBLogQueries() {
 		db.Logger.LogMode(glogger.Info)
 	}
-	db.AutoMigrate(&user.CredentialInfo{}, &user.Profile{})
+	_ = db.AutoMigrate(&user.CredentialInfo{}, &user.Profile{})
 
 	return &AuthRepository{
 		db: db,
@@ -34,7 +34,7 @@ func NewRepository() *AuthRepository {
 }
 
 func NewRepositoryCustom(db *gorm.DB) *AuthRepository {
-	db.AutoMigrate(&user.CredentialInfo{}, &user.Profile{})
+	_ = db.AutoMigrate(&user.CredentialInfo{}, &user.Profile{})
 
 	return &AuthRepository{
 		db: db,

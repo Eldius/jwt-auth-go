@@ -4,7 +4,10 @@ import (
 	"github.com/eldius/jwt-auth-go/config"
 	"github.com/eldius/jwt-auth-go/logger"
 	"github.com/eldius/jwt-auth-go/user"
-	"github.com/jinzhu/gorm"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	glogger "gorm.io/gorm/logger"
 )
 
 var (
@@ -16,12 +19,12 @@ type AuthRepository struct {
 }
 
 func NewRepository() *AuthRepository {
-	db, err := gorm.Open(config.GetDBEngine(), config.GetDBURL())
+	db, err := gorm.Open(GetDialect())
 	if err != nil {
 		panic("failed to connect database")
 	}
 	if config.GetDBLogQueries() {
-		db.LogMode(true)
+		db.Logger.LogMode(glogger.Info)
 	}
 	db.AutoMigrate(&user.CredentialInfo{}, &user.Profile{})
 
@@ -78,4 +81,15 @@ func (r *AuthRepository) FindUserByID(id int) *user.CredentialInfo {
 func (r *AuthRepository) ListUSers() (c []user.CredentialInfo) {
 	r.db.Find(&c, "")
 	return
+}
+
+func GetDialect() gorm.Dialector {
+	switch config.GetDBEngine() {
+	case "sqlite":
+		return sqlite.Open(config.GetDBURL())
+	case "mysql", "mariadb":
+		return mysql.Open(config.GetDBURL())
+	default:
+		return sqlite.Open(config.GetDBURL())
+	}
 }

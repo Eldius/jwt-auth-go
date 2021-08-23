@@ -24,6 +24,14 @@ const (
 	invalidJwtSign   = "auth.jwt.validation.sign.invalid"
 )
 
+type NewUser struct {
+	User   string
+	Pass   string
+	Name   string
+	Active bool
+	Admin  bool
+}
+
 type AuthService struct {
 	repo *repository.AuthRepository
 }
@@ -43,6 +51,9 @@ func NewAuthServiceCustom(repo *repository.AuthRepository) *AuthService {
 // ValidatePass validates user credentials
 func (s *AuthService) ValidatePass(username string, pass string) (u *user.CredentialInfo, err error) {
 	var usr = s.repo.FindUser(username)
+	if usr == nil {
+		return nil, fmt.Errorf("User not found")
+	}
 	if usr.Hash == nil {
 		err = fmt.Errorf("Failed to authenticate user")
 		return
@@ -144,6 +155,30 @@ func (s *AuthService) GetCurrentUser(r *http.Request) *user.CredentialInfo {
 
 func (s *AuthService) GetRepository() *repository.AuthRepository {
 	return s.repo
+}
+
+func (s *AuthService) CreateNewUser(user *NewUser) (*user.CredentialInfo, error) {
+	_c := s.repo.FindUser(user.User)
+	if _c != nil {
+		return nil, fmt.Errorf("User alread exists.")
+	}
+	c, err := toCredentials(user)
+	if err != nil {
+		return nil, err
+	}
+	s.repo.SaveUser(c)
+	return c, nil
+}
+
+func toCredentials(u *NewUser) (*user.CredentialInfo, error) {
+	c, err := user.NewCredentials(u.User, u.Pass)
+	if err != nil {
+		return nil, err
+	}
+	c.Name = u.Name
+	c.Admin = u.Admin
+	c.Active = config.GetUserDefaultActive()
+	return &c, nil
 }
 
 func generateHeader() (headerStr string, err error) {

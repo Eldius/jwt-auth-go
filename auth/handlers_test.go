@@ -28,6 +28,13 @@ const (
 		"active":true,
 		"admin":true
 	}`
+	validUserPayload1 = `{
+		"user":"valid.user1",
+		"pass":"pass",
+		"name":"name",
+		"active":true,
+		"admin":true
+	}`
 	userlessUserPayload = `{
 		"pass":"pass",
 		"name":"name",
@@ -35,13 +42,13 @@ const (
 		"admin":true
 	}`
 	passlessUserPayload = `{
-		"user":"valid.user",
+		"user":"valid.user1",
 		"name":"name",
 		"active":true,
 		"admin":true
 	}`
 	invalidActiveUserPayload = `{
-		"user":"valid.user",
+		"user":"valid.user2",
 		"name":"name",
 		"active":active,
 		"admin":true

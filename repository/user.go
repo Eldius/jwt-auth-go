@@ -65,9 +65,14 @@ func (r *AuthRepository) SaveUser(c *user.CredentialInfo) {
 // FindUser finds the user
 func (r *AuthRepository) FindUser(username string) *user.CredentialInfo {
 
-	u := user.CredentialInfo{}
-	r.db.Where("User = ?", username).First(&u)
-	return &u
+	var u *user.CredentialInfo
+	//r.db.Where("User = ?", username).First(&u)
+	tx := r.db.Where("User = ?", username).First(&u)
+	if tx.Error != nil {
+		log.WithError(tx.Error).Info("FindUser")
+		return nil
+	}
+	return u
 }
 
 // FindUser finds the user

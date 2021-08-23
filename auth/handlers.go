@@ -4,9 +4,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-
-	"github.com/eldius/jwt-auth-go/config"
-	"github.com/eldius/jwt-auth-go/user"
 )
 
 type LoginRequest struct {
@@ -105,14 +102,18 @@ func (h *AuthHandler) HandleNewUser() http.HandlerFunc {
 			return
 		}
 
-		c, err := toCredentials(&u)
-		if err != nil {
+		if _, err := h.svc.CreateNewUser(&NewUser{
+			User:   u.User,
+			Pass:   u.Pass,
+			Name:   u.Name,
+			Active: u.Active,
+			Admin:  u.Admin,
+		}); err != nil {
 			log.Println(err.Error())
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			_, _ = w.Write([]byte(err.Error()))
 			return
 		}
-		h.svc.repo.SaveUser(c)
 		w.WriteHeader(http.StatusCreated)
 	}
 }
@@ -123,15 +124,4 @@ func (h *AuthHandler) GetService() *AuthService {
 
 func (h *AuthHandler) AuthInterceptor(f http.HandlerFunc) http.Handler {
 	return h.svc.AuthInterceptor(f)
-}
-
-func toCredentials(u *NewUserRequest) (*user.CredentialInfo, error) {
-	c, err := user.NewCredentials(u.User, u.Pass)
-	if err != nil {
-		return nil, err
-	}
-	c.Name = u.Name
-	c.Admin = u.Admin
-	c.Active = config.GetUserDefaultActive()
-	return &c, nil
 }

@@ -49,7 +49,7 @@ func TestValidatePass(t *testing.T) {
 	}
 
 	r := repository.NewRepository()
-	svc := NewAuthServiceCustom(r)
+	svc := NewServiceCustom(r)
 
 	r.SaveUser(&u)
 
@@ -73,7 +73,7 @@ func TestValidatePassInvalidCredentials(t *testing.T) {
 	}
 
 	r := repository.NewRepository()
-	svc := NewAuthServiceCustom(r)
+	svc := NewServiceCustom(r)
 
 	r.SaveUser(&u)
 
@@ -92,7 +92,7 @@ func TestValidatePassUserNotFound(t *testing.T) {
 	username := "user2"
 	passwd := "pass1"
 
-	svc := NewAuthService()
+	svc := NewService()
 
 	c, err := svc.ValidatePass(username, passwd)
 	if err == nil {
@@ -110,7 +110,7 @@ func TestToJWT(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to create the test user\n%s", err.Error())
 	}
-	svc := NewAuthService()
+	svc := NewService()
 
 	token, err := svc.ToJWT(u)
 	if err != nil {

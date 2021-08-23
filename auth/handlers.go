@@ -22,7 +22,7 @@ type NewUserRequest struct {
 type AuthContextKey string
 
 type AuthHandler struct {
-	svc *AuthService
+	svc *Service
 }
 
 const (
@@ -31,11 +31,11 @@ const (
 
 func NewAuthHandler() *AuthHandler {
 	return &AuthHandler{
-		svc: NewAuthService(),
+		svc: NewService(),
 	}
 }
 
-func NewAuthHandlerCustom(svc *AuthService) *AuthHandler {
+func NewAuthHandlerCustom(svc *Service) *AuthHandler {
 	return &AuthHandler{
 		svc: svc,
 	}
@@ -118,7 +118,7 @@ func (h *AuthHandler) HandleNewUser() http.HandlerFunc {
 	}
 }
 
-func (h *AuthHandler) GetService() *AuthService {
+func (h *AuthHandler) GetService() *Service {
 	return h.svc
 }
 

@@ -24,6 +24,9 @@ const (
 	invalidJwtSign   = "auth.jwt.validation.sign.invalid"
 )
 
+/*
+NewUser is a VO to pass the new users creation parameters
+*/
 type NewUser struct {
 	User   string
 	Pass   string
@@ -32,24 +35,33 @@ type NewUser struct {
 	Admin  bool
 }
 
-type AuthService struct {
+/*
+Service is the service used to interact with API
+*/
+type Service struct {
 	repo *repository.AuthRepository
 }
 
-func NewAuthService() *AuthService {
-	return &AuthService{
+/*
+NewService creates a new service instance creating a default repository
+*/
+func NewService() *Service {
+	return &Service{
 		repo: repository.NewRepository(),
 	}
 }
 
-func NewAuthServiceCustom(repo *repository.AuthRepository) *AuthService {
-	return &AuthService{
+/*
+NewServiceCustom creates a new service instance passing your own repository
+*/
+func NewServiceCustom(repo *repository.AuthRepository) *Service {
+	return &Service{
 		repo: repo,
 	}
 }
 
 // ValidatePass validates user credentials
-func (s *AuthService) ValidatePass(username string, pass string) (u *user.CredentialInfo, err error) {
+func (s *Service) ValidatePass(username string, pass string) (u *user.CredentialInfo, err error) {
 	var usr = s.repo.FindUser(username)
 	if usr == nil {
 		return nil, fmt.Errorf("User not found")
@@ -74,7 +86,10 @@ func (s *AuthService) ValidatePass(username string, pass string) (u *user.Creden
 	return
 }
 
-func (s *AuthService) ToJWT(u user.CredentialInfo) (jwt string, err error) {
+/*
+ToJWT generates the JWT token from an object of user.CredentialInfo
+*/
+func (s *Service) ToJWT(u user.CredentialInfo) (jwt string, err error) {
 	// Create a new HMAC by defining the hash type and the key (as byte array)
 	header, err := generateHeader()
 	if err != nil {
@@ -95,7 +110,10 @@ func (s *AuthService) ToJWT(u user.CredentialInfo) (jwt string, err error) {
 	return
 }
 
-func (s *AuthService) FromJWT(jwt string) (u *user.CredentialInfo, err error) {
+/*
+FromJWT parses JWT token to an object user.CredentialInfo
+*/
+func (s *Service) FromJWT(jwt string) (u *user.CredentialInfo, err error) {
 	parts := strings.Split(jwt, ".")
 	if len(parts) != 3 {
 		err = fmt.Errorf(invalidJwtFormat)
@@ -126,7 +144,10 @@ func (s *AuthService) FromJWT(jwt string) (u *user.CredentialInfo, err error) {
 	return
 }
 
-func (s *AuthService) AuthInterceptor(f http.HandlerFunc) http.Handler {
+/*
+AuthInterceptor is an interceptor to validate user is logged and its login data is valid
+*/
+func (s *Service) AuthInterceptor(f http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		// TODO remove this before release
@@ -148,19 +169,28 @@ func (s *AuthService) AuthInterceptor(f http.HandlerFunc) http.Handler {
 	})
 }
 
-func (s *AuthService) GetCurrentUser(r *http.Request) *user.CredentialInfo {
+/*
+GetCurrentUser returns the current user by validating the `Authorization` header
+*/
+func (s *Service) GetCurrentUser(r *http.Request) *user.CredentialInfo {
 	ctx := r.Context()
 	return ctx.Value(CurrentUserKey).(*user.CredentialInfo)
 }
 
-func (s *AuthService) GetRepository() *repository.AuthRepository {
+/*
+GetRepository returns the service repository
+*/
+func (s *Service) GetRepository() *repository.AuthRepository {
 	return s.repo
 }
 
-func (s *AuthService) CreateNewUser(user *NewUser) (*user.CredentialInfo, error) {
+/*
+CreateNewUser returns a new user
+*/
+func (s *Service) CreateNewUser(user *NewUser) (*user.CredentialInfo, error) {
 	_c := s.repo.FindUser(user.User)
 	if _c != nil {
-		return nil, fmt.Errorf("User alread exists.")
+		return nil, fmt.Errorf("user alread exists")
 	}
 	c, err := toCredentials(user)
 	if err != nil {

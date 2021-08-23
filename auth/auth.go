@@ -23,8 +23,12 @@ const (
 	invalidJwtFormat = "auth.jwt.validation.format.invalid"
 	invalidJwtSign   = "auth.jwt.validation.sign.invalid"
 	expiredToken     = "auth.jwt.validation.token.expired"
-	TokenDataUser    = "user"
-	TokenDataName    = "name"
+
+	// TokenDataUser JWT field to hold username info
+	TokenDataUser = "user"
+	// TokenDataName JWT field to hold name info
+	TokenDataName = "name"
+	// TokenDataExpires JWT field to hold expiration info
 	TokenDataExpires = "expires"
 )
 

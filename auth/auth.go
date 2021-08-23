@@ -22,6 +22,10 @@ import (
 const (
 	invalidJwtFormat = "auth.jwt.validation.format.invalid"
 	invalidJwtSign   = "auth.jwt.validation.sign.invalid"
+	expiredToken     = "auth.jwt.validation.token.expired"
+	TokenDataUser    = "user"
+	TokenDataName    = "name"
+	TokenDataExpires = "expires"
 )
 
 /*
@@ -139,9 +143,27 @@ func (s *Service) FromJWT(jwt string) (u *user.CredentialInfo, err error) {
 		return
 	}
 
+	validateTokenData(tmpData)
 	u = s.repo.FindUser(tmpData["user"])
 
+	if u == nil {
+
+	}
 	return
+}
+
+func validateTokenData(tokenData map[string]string) error {
+	if val, ok := tokenData["expires"]; ok {
+		//do something here
+		expires, err := time.Parse(time.RFC3339, val)
+		if err != nil {
+			return err
+		}
+		if expires.Before(time.Now()) {
+			return fmt.Errorf(expiredToken)
+		}
+	}
+	return nil
 }
 
 /*
@@ -158,6 +180,10 @@ func (s *Service) AuthInterceptor(f http.HandlerFunc) http.Handler {
 				log.Println(err.Error())
 				w.WriteHeader(403)
 				return
+			}
+
+			if u == nil {
+
 			}
 			ctx := r.Context()
 			ctx = context.WithValue(ctx, CurrentUserKey, u)
@@ -227,12 +253,12 @@ func generateHeader() (headerStr string, err error) {
 
 func generatePayload(u user.CredentialInfo) (payloadStr string, err error) {
 	payload := map[string]string{
-		"user": u.User,
-		"name": u.Name,
+		TokenDataUser: u.User,
+		TokenDataName: u.Name,
 	}
 	ttl := config.GetDefaultJwtTTL()
-	if ttl.Milliseconds() >= 0 {
-		payload["expires"] = time.Now().Add(ttl).String()
+	if ttl.Milliseconds() >= 1 {
+		payload[TokenDataExpires] = time.Now().Add(ttl).Format(time.RFC3339)
 	}
 	payloadByte, err := json.Marshal(payload)
 	if err != nil {

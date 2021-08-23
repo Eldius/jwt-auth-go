@@ -18,7 +18,7 @@ auth.user.pattern: `^[a-zA-Z0-9\\._-]*$`
 auth.pass.pattern: `^[a-zA-Z0-9\\._-]*$`
 auth.jwt.secret: `uuid.New().String()`
 auth.user.default.active: true
-auth.jwt.ttl: 0s
+auth.jwt.ttl: 3600s
 */
 func SetDefaults() {
 	//viper.SetDefault("auth.database.url", "test.db")
@@ -27,7 +27,7 @@ func SetDefaults() {
 	viper.SetDefault("auth.pass.pattern", "^[a-zA-Z0-9\\._-]*$")
 	viper.SetDefault("auth.jwt.secret", uuid.New().String())
 	viper.SetDefault("auth.user.default.active", true)
-	viper.SetDefault("auth.jwt.ttl", "0s")
+	viper.SetDefault("auth.jwt.ttl", "3600s")
 }
 
 /*

@@ -7,6 +7,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/eldius/jwt-auth-go/config"
 	"github.com/eldius/jwt-auth-go/repository"
@@ -103,6 +104,34 @@ func TestValidatePassUserNotFound(t *testing.T) {
 		t.Errorf("Failed to validate user (returned nil value)")
 	}
 
+}
+
+func TestValidateTokenDataSuccessWithoutExpireTime(t *testing.T) {
+	tokenData := map[string]string{}
+	err := validateTokenData(tokenData)
+	if err != nil {
+		t.Errorf("Must not return error: '%s'", err.Error())
+	}
+}
+
+func TestValidateTokenDataSuccessWithExpireTime(t *testing.T) {
+	tokenData := map[string]string{
+		TokenDataExpires: time.Now().Add(60 * time.Second).Format(time.RFC3339),
+	}
+	err := validateTokenData(tokenData)
+	if err != nil {
+		t.Errorf("Must not return error: '%s'", err.Error())
+	}
+}
+
+func TestValidateTokenDataTokeExpired(t *testing.T) {
+	tokenData := map[string]string{
+		TokenDataExpires: time.Now().Add(-60 * time.Second).Format(time.RFC3339),
+	}
+	err := validateTokenData(tokenData)
+	if err == nil {
+		t.Errorf("Must return an error")
+	}
 }
 
 func TestToJWT(t *testing.T) {

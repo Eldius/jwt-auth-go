@@ -23,12 +23,12 @@ const (
 	invalidJwtFormat = "auth.jwt.validation.format.invalid"
 	invalidJwtSign   = "auth.jwt.validation.sign.invalid"
 	expiredToken     = "auth.jwt.validation.token.expired"
+)
 
-	// TokenDataUser JWT field to hold username info
-	TokenDataUser = "user"
-	// TokenDataName JWT field to hold name info
-	TokenDataName = "name"
-	// TokenDataExpires JWT field to hold expiration info
+// Token data field names
+const (
+	TokenDataUser    = "user"
+	TokenDataName    = "name"
 	TokenDataExpires = "expires"
 )
 
@@ -121,7 +121,7 @@ func (s *Service) ToJWT(u user.CredentialInfo) (jwt string, err error) {
 /*
 FromJWT parses JWT token to an object user.CredentialInfo
 */
-func (s *Service) FromJWT(jwt string) (u *user.CredentialInfo, err error) {
+func (s *Service) FromJWT(jwt string) (d map[string]string, err error) {
 	parts := strings.Split(jwt, ".")
 	if len(parts) != 3 {
 		err = fmt.Errorf(invalidJwtFormat)
@@ -141,18 +141,11 @@ func (s *Service) FromJWT(jwt string) (u *user.CredentialInfo, err error) {
 		return
 	}
 
-	var tmpData map[string]string
-	err = json.Unmarshal([]byte(b), &tmpData)
+	err = json.Unmarshal([]byte(b), &d)
 	if err != nil {
 		return
 	}
 
-	validateTokenData(tmpData)
-	u = s.repo.FindUser(tmpData["user"])
-
-	if u == nil {
-
-	}
 	return
 }
 
@@ -179,15 +172,21 @@ func (s *Service) AuthInterceptor(f http.HandlerFunc) http.Handler {
 		// TODO remove this before release
 		if strings.HasPrefix(authHeader, "Bearer ") {
 			jwt := strings.Replace(authHeader, "Bearer ", "", 1)
-			u, err := s.FromJWT(jwt)
+			tokenData, err := s.FromJWT(jwt)
 			if err != nil {
 				log.Println(err.Error())
 				w.WriteHeader(403)
 				return
 			}
-
+			if err := validateTokenData(tokenData); err != nil {
+				log.Println(err.Error())
+				w.WriteHeader(403)
+				return
+			}
+			u := s.repo.FindUser(tokenData["user"])
 			if u == nil {
-
+				w.WriteHeader(403)
+				return
 			}
 			ctx := r.Context()
 			ctx = context.WithValue(ctx, CurrentUserKey, u)

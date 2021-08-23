@@ -14,10 +14,16 @@ var (
 	log = logger.Logger()
 )
 
+/*
+AuthRepository is the repository type
+*/
 type AuthRepository struct {
 	db *gorm.DB
 }
 
+/*
+NewRepository returns a new repository creating a new db (*gorm.DB)
+*/
 func NewRepository() *AuthRepository {
 	db, err := gorm.Open(GetDialect())
 	if err != nil {
@@ -33,6 +39,9 @@ func NewRepository() *AuthRepository {
 	}
 }
 
+/*
+NewRepositoryCustom returns a new repository using the passed db (*gorm.DB)
+*/
 func NewRepositoryCustom(db *gorm.DB) *AuthRepository {
 	_ = db.AutoMigrate(&user.CredentialInfo{}, &user.Profile{})
 
@@ -62,7 +71,7 @@ func (r *AuthRepository) SaveUser(c *user.CredentialInfo) {
 	}
 }
 
-// FindUser finds the user
+// FindUser finds the user by username
 func (r *AuthRepository) FindUser(username string) *user.CredentialInfo {
 
 	var u *user.CredentialInfo
@@ -75,7 +84,7 @@ func (r *AuthRepository) FindUser(username string) *user.CredentialInfo {
 	return u
 }
 
-// FindUser finds the user
+// FindUserByID finds the user by its ID
 func (r *AuthRepository) FindUserByID(id int) *user.CredentialInfo {
 	u := user.CredentialInfo{}
 	r.db.Where("ID = ?", id).First(&u)
@@ -88,6 +97,9 @@ func (r *AuthRepository) ListUSers() (c []user.CredentialInfo) {
 	return
 }
 
+/*
+GetDialect parses the dialect using the 'auth.database.engine' config key
+*/
 func GetDialect() gorm.Dialector {
 	switch config.GetDBEngine() {
 	case "sqlite":

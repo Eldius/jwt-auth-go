@@ -6,11 +6,17 @@ import (
 	"net/http"
 )
 
+/*
+LoginRequest is the model to decode login payload
+*/
 type LoginRequest struct {
 	User string `json:"user"`
 	Pass string `json:"pass"`
 }
 
+/*
+NewUserRequest is the model to decode new user request
+*/
 type NewUserRequest struct {
 	User   string `json:"user"`
 	Pass   string `json:"pass"`
@@ -19,24 +25,37 @@ type NewUserRequest struct {
 	Admin  bool   `json:"admin"`
 }
 
-type AuthContextKey string
+/*
+ContextKey is the key used to add user data into requests context
+*/
+type ContextKey string
 
-type AuthHandler struct {
+/*
+Handler is the object who will take care of authorization validation
+*/
+type Handler struct {
 	svc *Service
 }
 
 const (
-	CurrentUserKey AuthContextKey = "currentUser"
+	// CurrentUserKey constant for the name used when add user data into request context
+	CurrentUserKey ContextKey = "currentUser"
 )
 
-func NewAuthHandler() *AuthHandler {
-	return &AuthHandler{
+/*
+NewHandler creates a new handler creating a default service instance
+*/
+func NewHandler() *Handler {
+	return &Handler{
 		svc: NewService(),
 	}
 }
 
-func NewAuthHandlerCustom(svc *Service) *AuthHandler {
-	return &AuthHandler{
+/*
+NewHandlerCustom creates a new handler passing your own service instance
+*/
+func NewHandlerCustom(svc *Service) *Handler {
+	return &Handler{
 		svc: svc,
 	}
 }
@@ -44,7 +63,7 @@ func NewAuthHandlerCustom(svc *Service) *AuthHandler {
 /*
 HandleLogin handles login requests
 */
-func (h *AuthHandler) HandleLogin() http.HandlerFunc {
+func (h *Handler) HandleLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		//w.Header().Add("Content-Type", "application/json")
 		w.Header().Add("Content-Type", "application/json")
@@ -88,7 +107,7 @@ func (h *AuthHandler) HandleLogin() http.HandlerFunc {
 /*
 HandleNewUser handles new user creation
 */
-func (h *AuthHandler) HandleNewUser() http.HandlerFunc {
+func (h *Handler) HandleNewUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			w.WriteHeader(http.StatusMethodNotAllowed)
@@ -118,10 +137,17 @@ func (h *AuthHandler) HandleNewUser() http.HandlerFunc {
 	}
 }
 
-func (h *AuthHandler) GetService() *Service {
+/*
+GetService returns the service used by this handler
+*/
+func (h *Handler) GetService() *Service {
 	return h.svc
 }
 
-func (h *AuthHandler) AuthInterceptor(f http.HandlerFunc) http.Handler {
+/*
+AuthInterceptor is the interceptor used to validate users
+is logged and its login data is valid
+*/
+func (h *Handler) AuthInterceptor(f http.HandlerFunc) http.Handler {
 	return h.svc.AuthInterceptor(f)
 }

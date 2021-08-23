@@ -14,6 +14,9 @@ const (
 	_pwHashBytes = 64
 )
 
+/*
+HashKey creates a hash from key using the salt
+*/
 func HashKey(key string, salt []byte) (hash []byte, err error) {
 	h := sha512.New()
 	_, err = h.Write([]byte(key))
@@ -37,6 +40,9 @@ func Hash(pass string, salt []byte) (hash []byte, err error) {
 	return
 }
 
+/*
+Salt generates a random salt
+*/
 func Salt() []byte {
 	salt := make([]byte, _pwSaltBytes)
 	_, err := io.ReadFull(rand.Reader, salt)

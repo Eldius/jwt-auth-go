@@ -10,6 +10,16 @@ import (
 	"github.com/spf13/viper"
 )
 
+/*
+SetDefaults defines the default values for library configs
+Default values:
+
+auth.user.pattern: `^[a-zA-Z0-9\\._-]*$`
+auth.pass.pattern: `^[a-zA-Z0-9\\._-]*$`
+auth.jwt.secret: `uuid.New().String()`
+auth.user.default.active: true
+auth.jwt.ttl: 0s
+*/
 func SetDefaults() {
 	//viper.SetDefault("auth.database.url", "test.db")
 	//viper.SetDefault("auth.database.engine", "sqlite3")
@@ -20,6 +30,9 @@ func SetDefaults() {
 	viper.SetDefault("auth.jwt.ttl", "0s")
 }
 
+/*
+SetupViper sets up library
+*/
 func SetupViper(cfgFile string) {
 	if cfgFile != "" {
 		// Use config file from the flag.

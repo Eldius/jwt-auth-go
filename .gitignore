@@ -1,3 +1,4 @@
 .vscode/
 *.out
 coverage.html
+target/

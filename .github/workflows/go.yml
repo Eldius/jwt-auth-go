@@ -35,9 +35,12 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           # version of golangci-lint to use in form of v1.2.3
-          version: v1.29
+          version: v1.31
 
       - name: Run Snyk to check for vulnerabilities
         uses: snyk/actions/golang@master
+        continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --sarif-file-output=snyk.sarif

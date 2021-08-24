@@ -6,6 +6,9 @@ test:
 lint:
 	revive -formatter friendly ./...
 
+vulnerabilities:
+	snyk test
+
 coverage-html:
 	go test -coverprofile=coverage.out ./... && go tool cover -html=coverage.out
 

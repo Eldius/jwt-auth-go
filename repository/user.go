@@ -55,7 +55,7 @@ func NewRepositoryCustom(db *gorm.DB) *AuthRepository {
 // SaveUser saves the new user credential
 func (r *AuthRepository) SaveUser(c *user.CredentialInfo) error {
 	if c == nil {
-		return fmt.Errorf("Nil credentials received.")
+		return fmt.Errorf("nil credentials received")
 	}
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')

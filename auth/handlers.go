@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/eldius/jwt-auth-go/config"
+	"github.com/eldius/jwt-auth-go/logger"
 )
 
 /*
@@ -64,76 +67,65 @@ func NewHandlerCustom(svc *Service) *Handler {
 HandleLogin handles login requests
 */
 func (h *Handler) HandleLogin() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		//w.Header().Add("Content-Type", "application/json")
-		w.Header().Add("Content-Type", "application/json")
-		var u LoginRequest
-		err := json.NewDecoder(r.Body).Decode(&u)
-		if err != nil {
-			log.Println(err.Error())
-			w.WriteHeader(401)
-			return
-		}
-		if u.User == "" || u.Pass == "" {
-			log.Println(err.Error())
-			w.WriteHeader(401)
-			return
-		}
-		cred, err := h.svc.ValidatePass(u.User, u.Pass)
-		if err != nil {
-			log.Println(err.Error())
-			w.WriteHeader(401)
-			return
-		}
-		log.Println(cred.User)
-		if err != nil {
-			log.Println(err.Error())
-			w.WriteHeader(401)
-			return
-		}
+	log := logger.Logger()
+	return func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			rw.Header().Add("Content-Type", "application/json")
 
-		token, err := h.svc.ToJWT(*cred)
-		if err != nil {
-			log.Println(err.Error())
-			w.WriteHeader(500)
+			var u LoginRequest
+			err := json.NewDecoder(r.Body).Decode(&u)
+			if err != nil {
+				log.Println(err.Error())
+				rw.WriteHeader(401)
+				return
+			}
+			log.WithField("test", u).Info("HandleLogin")
+			if u.User == "" || u.Pass == "" {
+				log.Println(err.Error())
+				rw.WriteHeader(401)
+				return
+			}
+			cred, err := h.svc.ValidatePass(u.User, u.Pass)
+			if err != nil {
+				log.Println(err.Error())
+				rw.WriteHeader(401)
+				return
+			}
+			log.Println(cred.User)
+			if err != nil {
+				log.Println(err.Error())
+				rw.WriteHeader(401)
+				return
+			}
+
+			token, err := h.svc.ToJWT(*cred)
+			if err != nil {
+				log.Println(err.Error())
+				rw.WriteHeader(500)
+			}
+			rw.WriteHeader(200)
+			_ = json.NewEncoder(rw).Encode(&map[string]string{
+				"token": token,
+			})
+		} else {
+			rw.WriteHeader(http.StatusMethodNotAllowed)
 		}
-		w.WriteHeader(200)
-		_ = json.NewEncoder(w).Encode(&map[string]string{
-			"token": token,
-		})
 	}
 }
 
 /*
-HandleNewUser handles new user creation
+HandleUser handles new user creation
 */
-func (h *Handler) HandleNewUser() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			w.WriteHeader(http.StatusMethodNotAllowed)
+func (h *Handler) HandleUser() http.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			h.createNewUser(rw, r)
+		} else if r.Method == http.MethodPatch {
+			log.Println("// TODO create a change password feature")
+			rw.WriteHeader(http.StatusNotImplemented)
+		} else {
+			rw.WriteHeader(http.StatusMethodNotAllowed)
 		}
-		w.Header().Add("Content-Type", "application/json")
-		var u NewUserRequest
-		err := json.NewDecoder(r.Body).Decode(&u)
-		if err != nil {
-			log.Println(err.Error())
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			return
-		}
-
-		if _, err := h.svc.CreateNewUser(&NewUser{
-			User:   u.User,
-			Pass:   u.Pass,
-			Name:   u.Name,
-			Active: u.Active,
-			Admin:  u.Admin,
-		}); err != nil {
-			log.Println(err.Error())
-			w.WriteHeader(http.StatusUnprocessableEntity)
-			_, _ = w.Write([]byte(err.Error()))
-			return
-		}
-		w.WriteHeader(http.StatusCreated)
 	}
 }
 
@@ -150,4 +142,29 @@ is logged and its login data is valid
 */
 func (h *Handler) AuthInterceptor(f http.HandlerFunc) http.Handler {
 	return h.svc.AuthInterceptor(f)
+}
+
+func (h *Handler) createNewUser(rw http.ResponseWriter, r *http.Request) {
+	rw.Header().Add("Content-Type", "application/json")
+	var u NewUserRequest
+	err := json.NewDecoder(r.Body).Decode(&u)
+	if err != nil {
+		log.Println(err.Error())
+		rw.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	if _, err := h.svc.CreateNewUser(&NewUser{
+		User:   u.User,
+		Pass:   u.Pass,
+		Name:   u.Name,
+		Active: config.GetUserDefaultActive(),
+		Admin:  u.Admin,
+	}); err != nil {
+		log.Println(err.Error())
+		rw.WriteHeader(http.StatusUnprocessableEntity)
+		_, _ = rw.Write([]byte(err.Error()))
+		return
+	}
+	rw.WriteHeader(http.StatusCreated)
 }

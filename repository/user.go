@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"fmt"
+
 	"github.com/eldius/jwt-auth-go/config"
 	"github.com/eldius/jwt-auth-go/logger"
 	"github.com/eldius/jwt-auth-go/user"
@@ -51,9 +53,9 @@ func NewRepositoryCustom(db *gorm.DB) *AuthRepository {
 }
 
 // SaveUser saves the new user credential
-func (r *AuthRepository) SaveUser(c *user.CredentialInfo) {
+func (r *AuthRepository) SaveUser(c *user.CredentialInfo) error {
 	if c == nil {
-		return
+		return fmt.Errorf("Nil credentials received.")
 	}
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		// do some database operations in the transaction (use 'tx' from this point, not 'db')
@@ -68,7 +70,9 @@ func (r *AuthRepository) SaveUser(c *user.CredentialInfo) {
 	})
 	if err != nil {
 		log.WithError(err).Error("Failed to insert data\n", err.Error())
+		return err
 	}
+	return nil
 }
 
 // FindUser finds the user by username

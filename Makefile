@@ -1,7 +1,10 @@
 
-test:
-	go clean -testcache
-	go test ./... -cover -timeout 1s
+clean:
+	-go clean -testcache
+	-rm coverage.*
+
+test: clean
+	go test ./... -cover -timeout 4s
 
 lint:
 	revive -formatter friendly ./...

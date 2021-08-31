@@ -2,13 +2,13 @@ package auth
 
 import (
 	"bytes"
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/spf13/viper"
 )
 
@@ -57,16 +57,16 @@ func init() {
 	viper.SetDefault("auth.database.engine", "sqlite3")
 	viper.SetDefault("auth.user.pattern", "^[a-zA-Z0-9\\._-]*$")
 	viper.SetDefault("auth.pass.pattern", "^[a-zA-Z0-9\\._-]*$")
-	viper.SetDefault("auth.jwt.secret", uuid.New().String())
+	viper.SetDefault("auth.jwt.secret", "uuid.New().String()")
 	viper.SetDefault("auth.user.default.active", true)
 	if err := viper.ReadInConfig(); err == nil {
 		log.Println("Using config file:", viper.ConfigFileUsed())
 	}
 }
 
-func TestAuthRequestCreated(t *testing.T) {
+func TestAuthHandleUserRequestCreated(t *testing.T) {
 	h := NewHandler()
-	s := httptest.NewServer(h.HandleNewUser())
+	s := httptest.NewServer(h.HandleUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(validUserPayload)))
 	if err != nil {
@@ -78,9 +78,9 @@ func TestAuthRequestCreated(t *testing.T) {
 	}
 }
 
-func TestAuthUnprocessableNoUsername(t *testing.T) {
+func TestAuthHandleUserUnprocessableNoUsername(t *testing.T) {
 	h := NewHandler()
-	s := httptest.NewServer(h.HandleNewUser())
+	s := httptest.NewServer(h.HandleUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(userlessUserPayload)))
 	if err != nil {
@@ -92,9 +92,9 @@ func TestAuthUnprocessableNoUsername(t *testing.T) {
 	}
 }
 
-func TestAuthUnprocessableNoPassword(t *testing.T) {
+func TestAuthHandleUserUnprocessableNoPassword(t *testing.T) {
 	h := NewHandler()
-	s := httptest.NewServer(h.HandleNewUser())
+	s := httptest.NewServer(h.HandleUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(passlessUserPayload)))
 	if err != nil {
@@ -106,9 +106,9 @@ func TestAuthUnprocessableNoPassword(t *testing.T) {
 	}
 }
 
-func TestAuthUnprocessableInvalidActiveAttribute(t *testing.T) {
+func TestAuthHandleUserUnprocessableInvalidActiveAttribute(t *testing.T) {
 	h := NewHandler()
-	s := httptest.NewServer(h.HandleNewUser())
+	s := httptest.NewServer(h.HandleUser())
 	defer s.Close()
 	res, err := http.Post(s.URL, "application/json", bytes.NewBuffer([]byte(invalidActiveUserPayload)))
 	if err != nil {
@@ -118,4 +118,90 @@ func TestAuthUnprocessableInvalidActiveAttribute(t *testing.T) {
 	if res.StatusCode != http.StatusUnprocessableEntity {
 		t.Errorf("Should return status code 422 (created), but was '%s'", res.Status)
 	}
+}
+
+func TestAuthHandleUserGet(t *testing.T) {
+	h := NewHandler()
+	s := httptest.NewServer(h.HandleUser())
+	defer s.Close()
+	res, err := http.Get(s.URL)
+	if err != nil {
+		t.Errorf("Failed to execute request")
+	}
+
+	if res.StatusCode != http.StatusMethodNotAllowed {
+		t.Errorf("Should return status code 415 (Method Not Allowed), but was '%s'", res.Status)
+	}
+}
+
+func TestAuthHandleUserPatch(t *testing.T) {
+	h := NewHandler()
+	s := httptest.NewServer(h.HandleUser())
+	defer s.Close()
+	r := bytes.NewReader([]byte(`{}`))
+	req, err := http.NewRequest(http.MethodPatch, s.URL, r)
+	if err != nil {
+		t.Errorf("Error creating patch request: '%s'", err.Error())
+	}
+	c := http.Client{}
+	res, err := c.Do(req)
+	if err != nil {
+		t.Errorf("Failed to execute request")
+	}
+
+	if res.StatusCode != http.StatusNotImplemented {
+		t.Errorf("Should return status code 501 (Not Implemented), but was '%s'", res.Status)
+	}
+}
+
+func TestLogin(t *testing.T) {
+	h := NewHandler()
+
+	usrN := "test.user.001"
+	usrP := "test-strong-pass-001"
+
+	setupUser(t, usrN, usrP, h.svc)
+
+	l := LoginRequest{
+		User: usrN,
+		Pass: usrP,
+	}
+	body, err := json.Marshal(l)
+	if err != nil {
+		t.Logf("Failed to encode login data: %s", err.Error())
+	}
+	svc := h.GetService()
+	repo := svc.GetRepository()
+	u := repo.FindUser(usrN)
+	t.Logf("user: %v", *u)
+	s := httptest.NewServer(h.HandleLogin())
+	defer s.Close()
+
+	loginPayload := string(body)
+	t.Logf("login: %s", loginPayload)
+
+	res, err := http.Post(s.URL, "application/json", bytes.NewReader([]byte(loginPayload)))
+	if err != nil {
+		t.Errorf("Failed to execute request: %v", err)
+		t.FailNow()
+	}
+
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("Should return 200 (OK), but was '%s'", res.Status)
+	}
+}
+
+func setupUser(t *testing.T, usrN string, usrP string, svc *Service) {
+	_, err := svc.CreateNewUser(&NewUser{
+		User:   usrN,
+		Pass:   usrP,
+		Name:   usrN,
+		Admin:  true,
+		Active: true,
+	})
+	if err != nil {
+		t.Errorf("Failed to create test user: %v", err)
+		t.FailNow()
+	}
+
 }

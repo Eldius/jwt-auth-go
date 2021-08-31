@@ -225,8 +225,8 @@ func (s *Service) CreateNewUser(user *NewUser) (*user.CredentialInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	s.repo.SaveUser(c)
-	return c, nil
+	err = s.repo.SaveUser(c)
+	return c, err
 }
 
 func toCredentials(u *NewUser) (*user.CredentialInfo, error) {
@@ -236,7 +236,7 @@ func toCredentials(u *NewUser) (*user.CredentialInfo, error) {
 	}
 	c.Name = u.Name
 	c.Admin = u.Admin
-	c.Active = config.GetUserDefaultActive()
+	c.Active = u.Active
 	return &c, nil
 }
 

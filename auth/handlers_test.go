@@ -3,6 +3,7 @@ package auth
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -188,6 +189,104 @@ func TestLogin(t *testing.T) {
 
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("Should return 200 (OK), but was '%s'", res.Status)
+	}
+}
+
+func TestAuthInterceptorSuccess(t *testing.T) {
+	h := NewHandler()
+
+	usrN := "test.user.002"
+	usrP := "test-strong-pass-002"
+
+	setupUser(t, usrN, usrP, h.svc)
+
+	svc := h.GetService()
+	r := h.svc.repo
+	c := r.FindUser(usrN)
+
+	jwt, err := svc.ToJWT(*c)
+	if err != nil {
+		t.Errorf("Failed to create JWT string: %s", err.Error())
+		t.FailNow()
+	}
+
+	s := httptest.NewServer(h.AuthInterceptor(func(rw http.ResponseWriter, _ *http.Request) {
+		rw.WriteHeader(http.StatusNoContent)
+	}))
+	defer s.Close()
+
+	req, err := http.NewRequest(http.MethodPost, s.URL, bytes.NewReader([]byte(`{}`)))
+	if err != nil {
+		t.Errorf("Failed to create request: %s", err.Error())
+		t.FailNow()
+	}
+
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", jwt))
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Errorf("Failed to execute request: %v", err)
+		t.FailNow()
+	}
+
+	if res.StatusCode != http.StatusNoContent {
+		t.Errorf("Should return 204 (No Content), but was '%s'", res.Status)
+	}
+}
+
+func TestAuthInterceptorInvalidJWTToken(t *testing.T) {
+	h := NewHandler()
+
+	s := httptest.NewServer(h.AuthInterceptor(func(rw http.ResponseWriter, _ *http.Request) {
+		rw.WriteHeader(http.StatusNoContent)
+	}))
+	defer s.Close()
+
+	req, err := http.NewRequest(http.MethodPost, s.URL, bytes.NewReader([]byte(`{}`)))
+	if err != nil {
+		t.Errorf("Failed to create request: %s", err.Error())
+		t.FailNow()
+	}
+
+	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", "ABC123"))
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Errorf("Failed to execute request: %v", err)
+		t.FailNow()
+	}
+
+	if res.StatusCode != http.StatusForbidden {
+		t.Errorf("Should return 403 (Forbidden), but was '%s'", res.Status)
+	}
+}
+
+func TestAuthInterceptorWithoutJWTToken(t *testing.T) {
+	h := NewHandler()
+
+	s := httptest.NewServer(h.AuthInterceptor(func(rw http.ResponseWriter, _ *http.Request) {
+		rw.WriteHeader(http.StatusNoContent)
+	}))
+	defer s.Close()
+
+	req, err := http.NewRequest(http.MethodPost, s.URL, bytes.NewReader([]byte(`{}`)))
+	if err != nil {
+		t.Errorf("Failed to create request: %s", err.Error())
+		t.FailNow()
+	}
+
+	req.Header.Add("Content-Type", "application/json")
+
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Errorf("Failed to execute request: %v", err)
+		t.FailNow()
+	}
+
+	if res.StatusCode != http.StatusForbidden {
+		t.Errorf("Should return 403 (Forbidden), but was '%s'", res.Status)
 	}
 }
 

@@ -1,2 +1,2 @@
 tasks:
-  - init: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.31.0 && go get ./... && go build ./... && go test ./... -cover && golangci-lint run
+  - init: curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.31.0 && go get ./... && go build ./... && go test ./... -cover && go get -u github.com/mgechev/revive && golangci-lint run && revive -formatter friendly ./...

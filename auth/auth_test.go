@@ -52,7 +52,10 @@ func TestValidatePass(t *testing.T) {
 	r := repository.NewRepository()
 	svc := NewServiceCustom(r)
 
-	r.SaveUser(&u)
+	if err := r.SaveUser(&u); err != nil {
+		t.Errorf("Failed to save user: %s", err.Error())
+		t.FailNow()
+	}
 
 	c, err := svc.ValidatePass(username, passwd)
 	if err != nil {
@@ -76,7 +79,10 @@ func TestValidatePassInvalidCredentials(t *testing.T) {
 	r := repository.NewRepository()
 	svc := NewServiceCustom(r)
 
-	r.SaveUser(&u)
+	if err := r.SaveUser(&u); err != nil {
+		t.Errorf("Failed to save user: %s", err.Error())
+		t.FailNow()
+	}
 
 	c, err := svc.ValidatePass(username, "pass")
 	if err == nil {
